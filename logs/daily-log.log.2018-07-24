@@ -1,0 +1,22 @@
+{"level":"info","message":"connected as id 315","timestamp":"2018-07-24 03:37:45"}
+{"level":"info","message":"connected as id 316","timestamp":"2018-07-24 03:39:44"}
+{"level":"info","message":"connected as id 317","timestamp":"2018-07-24 03:40:13"}
+{"level":"info","message":"connected as id 318","timestamp":"2018-07-24 03:43:05"}
+{"level":"info","message":"connected as id 319","timestamp":"2018-07-24 03:44:13"}
+{"level":"info","message":"connected as id 320","timestamp":"2018-07-24 03:44:49"}
+{"level":"info","message":"connected as id 321","timestamp":"2018-07-24 03:45:47"}
+{"level":"info","message":"connected as id 322","timestamp":"2018-07-24 03:46:31"}
+{"level":"error","message":"500 - Invalid message Id - /message/aerf - GET - ::1 - reqid: d5fdd260-8f2a-11e8-8810-87092b7c4cb5","timestamp":"2018-07-24 03:47:57"}
+{"level":"info","message":"connected as id 323","timestamp":"2018-07-24 03:48:43"}
+{"level":"error","message":"500 - logger is not defined - /message/aerf - GET - ::1 - reqid: f434f5b0-8f2a-11e8-9605-f19602c3b31c","timestamp":"2018-07-24 03:48:48"}
+{"level":"info","message":"connected as id 324","timestamp":"2018-07-24 03:49:11"}
+{"level":"error","message":"500 - Invalid message Id - /message/aerf - GET - ::1 - reqid: 0700aa90-8f2b-11e8-b190-1b12945f09b1","timestamp":"2018-07-24 03:49:19"}
+{"level":"info","message":"connected as id 325","timestamp":"2018-07-24 03:50:52"}
+{"level":"debug","message":"[Request url: /message/1] [Request Method: GET] [Request IP: ::1] [Request ID: 406d9810-8f2b-11e8-ad40-5de771564546]","timestamp":"2018-07-24 03:50:56"}
+{"level":"info","message":"connected as id 326","timestamp":"2018-07-24 04:32:25"}
+{"level":"error","message":"500 - req.set is not a function - /message/1 - GET - ::1 - reqid: undefined","timestamp":"2018-07-24 04:32:30"}
+{"level":"info","message":"connected as id 327","timestamp":"2018-07-24 04:36:11"}
+{"level":"debug","message":"[Request url: /message/1] [Request Method: GET] [Request IP: ::1] [Request ID: 95040c00-8f31-11e8-baa4-3950a30d8432]","timestamp":"2018-07-24 04:36:15"}
+{"level":"info","message":"connected as id 328","timestamp":"2018-07-24 04:42:45"}
+{"level":"debug","message":"[Request url: /message/1] [Request Method: GET] [Request IP: ::1] [Request ID: 8410f240-8f32-11e8-9e0a-7f4ec78f99e5]","timestamp":"2018-07-24 04:42:56"}
+{"level":"debug","message":"[Request url: /message/1] [Request Method: GET] [Request IP: ::1] [Request ID: 86787c60-8f32-11e8-9e0a-7f4ec78f99e5]","timestamp":"2018-07-24 04:43:00"}

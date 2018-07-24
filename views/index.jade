@@ -1,0 +1,31 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title} !!!
+  br
+  p This is a simple Messenger Application where a user and create profile and can do all the crud operations on the profiles created. A user can also post a message and comments on other messages too.
+  br
+  p create profile: /profile/new  		POST
+  p see profile: /profle/{id} 			GET
+  p see all profiles: /profile/all 		GET
+  p update profile: /profile/{id} 		PUT
+  p delete profile: /profile/{id}		DELETE
+  br
+  p create mesasge: /message/new POST
+  p see message: /message/{id} GET
+  p see all messages: /message/all GET
+  p update message: /message/{id} PUT
+  p delete message: /message/{id} DELETE
+  br
+  p create comment on message: /messages/{messageId}/comments/new POST
+  p see comment of a message: /messages/{messageId}/comments/{id} GET
+  p see all comments of a message: /messages/{messageId}/comments/all GET
+  p see all comments: /messages/all GET
+  p update comment of a message: /messages/{messageId}/comments/{id} PUT
+  p delete comment of a message: /messages/{messageId}/comments/{id} DELETE
+
+
+
+
+
