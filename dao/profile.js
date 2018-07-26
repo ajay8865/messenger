@@ -4,83 +4,79 @@ var Profile = require('../models/profile');
 
 var profileDao = {
 
-	getProfiles: function(req, res, next, callback){
+	getAllProfiles: function(resolve, reject, req){
 		mysql.getConnection().query('Select * from profile', function(err, data){
 			if(err){
-				throw err;
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug("Successfully retreive all profiles, " + "Request Id: " + req.id);
+				resolve(data);
 			}
-			callback(data);
 		});
 	},
 
-	getAllProfiles: function(res){
-		mysql.getConnection().query('Select * from profile', function(err, data){
-			if(err){
-				throw err;
-			}
-			res.status(200);
-   			res.json({'profiles' : data});
-		});
-	},
-
-	getProfileById: function(id, res){
+	getProfileById: function(resolve, reject, id, req){
 		mysql.getConnection().query('Select * from profile where `id`=?', id, function(err, data){
 			if(err){
-				throw err;
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully retreive profile by id: ${id}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(200);
-			res.json({'profile': data});
 		});
 	},
 
-	getProfileByName: function(name, res){
+	getProfileByName: function(resolve, reject, name, req){
 		mysql.getConnection().query('Select * from profile where `firstname`=?', name, function(err, data){
 			if(err){
-				throw err;
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully retreive profile by name: ${name}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(200);
-			res.json({'profile': data});
 		});
 	},
 
-	createProfile: function(profile, res){
+	createProfile: function(resolve, reject, profile, req){
 		var user = new Profile(profile.firstname, profile.lastname, profile.email);
 		mysql.getConnection().query('Insert into profile SET ?', user, function(err, data){
 			if(err){
-				throw err
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully created profile by name: ${profile.firstname}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(201);
-			res.send("Successfully created profile for user " + profile.firstname + ` with id ${data.insertId}`);
 		});
 	},
 
-	updateProfile: function(profile, id, res){
-		var user = new Profile(profile.firstname, profile.lastname, profile.email);
+	updateProfile: function(resolve, reject, profile, req){
+		const user = new Profile(profile.firstname, profile.lastname, profile.email);
+		const id = req.params.id;
 		mysql.getConnection().query('Update profile SET firstname = ?, lastname = ?, email = ? where id=?', 
 			[user.firstname, user.lastname, user.email, id],  function(err, data){
 			if(err){
-				throw err
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else if(data.changedRows === 0){
+				global.logger.debug(`No user profile found with id: ${id}, Request Id: ${req.id}`);
+			}else{
+				global.logger.debug(`Successfully updated profile with id: ${id}, Request Id: ${req.id}`);
 			}
-			if(data.changedRows === 0){
-				res.status(404);
-				res.send('No User profile found with id: ' + id);
-			}
-			res.status(201);
-			res.send("Successfully updated profile for user " + profile.firstname + ` with id ${id}`);
+			resolve(data);
 		});
 	},
 
-	deleteProfile: function(id, res){
-		mysql.getConnection().query('Delete from profile where `id`=?', id, function(err, data){
+	deleteProfile: function(resolve, reject, req){
+		mysql.getConnection().query('Delete from profile where `id`=?', req.params.id, function(err, data){
 			if(err){
-				throw err
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
 			}
-			if(data.affectedRows === 0){
-				res.status(404);
-				res.send('No User profile found with id: ' + id);
-			}
-			res.status(200);
-			res.send("Successfully deleted profile for user with id: " + id);
+			resolve(data);
 		});
 	}
 }

@@ -1,8 +1,6 @@
 var appRoot = require('app-root-path');
 const winston = require('winston');
 require('winston-daily-rotate-file');
-var httpContext = require('express-http-context');
-var reqId = httpContext.get('reqId');
 const moment = require('moment');
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
 

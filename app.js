@@ -1,47 +1,48 @@
-var createError = require('http-errors');
-var errorHandler = require('./errorHandler/errorHandler');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var morgan = require('morgan');
-var logger = require('./config/winston');
-var uuid = require('uuid/v1');
-var httpContext = require('express-http-context');
-var mysql = require('./connection/mysql');
-var indexRouter = require('./routes/index');
-var profileRouter = require('./routes/profile');
-var messageRouter = require('./routes/message');
-var commentRouter = require('./routes/comment');
-var debug = require('debug')('route:http');
-var app = express();
+const createError = require('http-errors');
+const errorHandler = require('./errorHandler/errorHandler');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+const logger = require('./config/winston');
+const middleware = require('./middleware/middleware');
+const mysql = require('./connection/mysql');
+const indexRouter = require('./routes/index');
+const profileRouter = require('./routes/profile');
+const messageRouter = require('./routes/message');
+const commentRouter = require('./routes/comment');
+const debug = require('debug')('app:http');
+const app = express();
 
-//global.logger = logger;
+if (!global.logger){
+	debug(`global.logger is initialised now`);
+  	global.logger = logger;
+}
 
 //create connection and connect to db
 const conn = mysql.createConnection();
 conn.connect(mysql.connectCallback);
 
-// Express.js middleware that is responsible for initializing the context for each request.
-app.use(httpContext.middleware);
-// Run the context for each request. Assign a unique identifier to each request
-app.use(function(req, res, next) {
-    httpContext.set('reqId', uuid());
-    var reqId = httpContext.get('reqId');
-  	logger.debug(`[Request url: ${req.originalUrl}] [Request Method: ${req.method}] [Request IP: ${req.ip}] [Request ID: ${reqId}]`);
-    debug(`Request url: ${req.originalUrl} --Request Method:  ${req.method} --Request IP: ${req.ip} --Request ID: ${reqId}`);
-    next();
-});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-//app.use(morgan('combined', { stream: logger.stream }));
+morgan.token('id', function getId (req) {
+  return req.id
+});
+
+// middlewares
+app.use(middleware.assignRequestId);
+app.use(middleware.logRequest);
+app.use(morgan('combined', { stream: logger.stream }));
+app.use(morgan('reqId=:id, method=:method, url=:url, response-time=:response-time', { stream: logger.stream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// routes middlewares
 app.use('/', indexRouter);
 app.use('/profile', profileRouter);
 app.use('/message', messageRouter);

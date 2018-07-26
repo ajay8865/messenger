@@ -1,9 +1,10 @@
-var mysql = require('mysql');
-var constants = require('../constants/constant');
-var logger = require('../config/winston');
-var conn = null;
+const mysql = require('mysql');
+const constants = require('../constants/constant');
+var MessengerError = require('../errorHandler/messengerError');
+let conn = null;
+const debug = require('debug')('conn:mysql');
 
-var connection = {
+const connection = {
 	createConnection: function(host, user, password, database){
 		conn = mysql.createConnection({
 			host     : host || constants.mysql.host,
@@ -15,6 +16,8 @@ var connection = {
 	},
 	useDB: function(db){
 		conn.query(db || constants.db);
+		global.logger.debug(`Mysql db changed to ${db}`);
+		debug(`Mysql db changed to ${db}`);
 		return conn;
 	},
 
@@ -25,8 +28,9 @@ var connection = {
 	connectCallback: function(err){
 		if(err){
 			logger.error('Error connecting to db');
-			throw new Error('Error connecting to db');
+			throw new MessengerError(constants.error.ERR_8001);
 		}
+		debug(`Connected as id ${conn.threadId}`);
 		logger.info('connected as id ' + conn.threadId);
 	}
 }

@@ -1,67 +1,89 @@
 var logger = require('../config/winston');
 var httpContext = require('express-http-context');
 var dao = require('../dao/profile');
+var Promise = require('promise');
+var MessengerError = require('../errorHandler/messengerError');
+var constants = require('../constants/constant');
 var service = {
 
-	getAllProfiles: function(res){
-		dao.getAllProfiles(res);
+
+	getAllProfiles: function(req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive all profiles, Request Id: ${req.id}`);
+			dao.getAllProfiles(resolve, reject, req);
+		});
 	},
 
 	getProfiles: function(req, res, next){
+		return new Promise(resolve)
 		dao.getProfiles(req, res, next, function(data){
 			res.status(200);
 			res.json({'profiles': data});
 		});
 	},
 
-	getProfile: function(param, res){
+	getProfile: function(req){
+		let param = req.params.id;
 		if(!param){
-			throw new Error("Missing profile ID or name");
+			throw new MessengerError(constants.error.ERR_9001);
 		}
 		if(isNaN(param)){
-			this.getProfileByName(param, res);
+			return this.getProfileByName(param, req);
 		}else{
-			this.getProfileById(param, res);
+			return this.getProfileById(param, req);
 		}
 	},
 
-	getProfileById: function(id, res){
-		dao.getProfileById(id, res);
+	getProfileById: function(id, req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive profile by id: ${id}, Request Id: ${req.id}`);
+			dao.getProfileById(resolve, reject, id, req);
+		});
 	},
 
-	getProfileByName: function(name, res){
-		dao.getProfileByName(name, res);
+	getProfileByName: function(name, req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive profile by name: ${name}, Request Id: ${req.id}`);
+			dao.getProfileByName(resolve, reject, name, req);
+		});
 	},
 
-	createProfile: function(profile, res){
+	createProfile: function(req){
+		const profile = req.body;
 		if(!profile){
-			throw new Error("Invalid post input");
+			throw new MessengerError(constants.error.ERR_9002);
 		}
 		if(!profile.firstname || !profile.lastname || !profile.email){
-			throw new Error("Missing required parameter in profile");
+			throw new MessengerError(constants.error.ERR_9003);
 		}
-		return dao.createProfile(profile, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to create profile by name: ${profile.firstname}, Request Id: ${req.id}`);
+			dao.createProfile(resolve, reject, profile, req);
+		});
 	},
 
-	updateProfile: function(profile, id, res){
+	updateProfile: function(req){
+		const profile = req.body;
 		if(!profile){
-			throw new Error("Invalid post input");
+			throw new MessengerError(constants.error.ERR_9002);
 		}
 		if(!profile.firstname || !profile.lastname || !profile.email){
-			throw new Error("Missing required parameter in profile");
+			throw new MessengerError(constants.error.ERR_9003);
 		}
-
-		if(isNaN(id)){
-			throw new Error("Invalid id");
-		}
-		return dao.updateProfile(profile, id, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to update profile with id: ${req.params.id}, Request Id: ${req.id}`);
+			dao.updateProfile(resolve, reject, profile, req);
+		});
 	},
 
-	deleteProfile: function(id, res){
-		if(isNaN(id)){
-			throw new Error("Invalid id");
+	deleteProfile: function(req){
+		if(isNaN(req.params.id)){
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		dao.deleteProfile(id, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to delete profile with id: ${req.params.id}, Request Id: ${req.id}`);
+			dao.deleteProfile(resolve, reject, req);
+		});
 	}
 
 }

@@ -1,13 +1,8 @@
-var logger = require('../config/winston');
-var httpContext = require('express-http-context');
-var errorHandler = {
+const errorHandler = {
 
 	logError: function(err, req, res, next){
-		res.locals.message = err.message;
-  		res.locals.error = req.app.get('env') === 'development' ? err : {};
-  		var reqId = httpContext.get('reqId');
-  		logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip} - reqid: ${reqId}`);
-  		next(err);
+      global.logger.error(`${err.stack}, Request Id: ${req.id}`);
+      next(err);
 	},
 
 	clientErrorHandler: function (err, req, res, next) {
@@ -19,8 +14,8 @@ var errorHandler = {
 	},
 
 	defaultErrorHandler: function(err, req, res, next){
-		res.status(err.status || 500);
-  		res.send('error');
+		res.status(err.error_code? 400 : 500);
+  	res.send(err.error_message || 'Some error occurred while processing request');
 	}
 }
 
