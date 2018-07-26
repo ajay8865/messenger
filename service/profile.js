@@ -1,10 +1,8 @@
-var logger = require('../config/winston');
-var httpContext = require('express-http-context');
-var dao = require('../dao/profile');
-var Promise = require('promise');
-var MessengerError = require('../errorHandler/messengerError');
-var constants = require('../constants/constant');
-var service = {
+const dao = require('../dao/profile');
+const Promise = require('promise');
+const MessengerError = require('../errorHandler/messengerError');
+const constants = require('../constants/constant');
+const service = {
 
 
 	getAllProfiles: function(req){

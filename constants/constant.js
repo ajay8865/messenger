@@ -1,4 +1,4 @@
-var constants = {
+const constants = {
 	mysql:{
 		host:'localhost',
 		user:'root',

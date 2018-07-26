@@ -1,8 +1,8 @@
 const mysql = require('mysql');
 const constants = require('../constants/constant');
-var MessengerError = require('../errorHandler/messengerError');
-let conn = null;
+const MessengerError = require('../errorHandler/messengerError');
 const debug = require('debug')('conn:mysql');
+let conn = null;
 
 const connection = {
 	createConnection: function(host, user, password, database){

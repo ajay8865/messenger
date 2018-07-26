@@ -1,8 +1,7 @@
-var mysql = require('../connection/mysql');
-var logger = require('../config/winston');
-var Profile = require('../models/profile');
+const mysql = require('../connection/mysql');
+const Profile = require('../models/profile');
 
-var profileDao = {
+const profileDao = {
 
 	getAllProfiles: function(resolve, reject, req){
 		mysql.getConnection().query('Select * from profile', function(err, data){
@@ -41,7 +40,7 @@ var profileDao = {
 	},
 
 	createProfile: function(resolve, reject, profile, req){
-		var user = new Profile(profile.firstname, profile.lastname, profile.email);
+		const user = new Profile(profile.firstname, profile.lastname, profile.email);
 		mysql.getConnection().query('Insert into profile SET ?', user, function(err, data){
 			if(err){
 				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
