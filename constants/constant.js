@@ -5,6 +5,13 @@ const constants = {
 		password:'password',
 		db:'messenger'
 	},
+	poolConfig:{
+		host:'localhost',
+		user:'root',
+		password:'password',
+		database:'messenger',
+		connectionLimit: 5
+	},
 	error:{
 		ERR_9001:{
 			error_code: 9001,

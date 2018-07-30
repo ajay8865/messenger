@@ -1,83 +1,94 @@
-var logger = require('../config/winston');
-var httpContext = require('express-http-context');
-var dao = require('../dao/comment');
-var service = {
+const dao = require('../dao/comment');
+const Promise = require('promise');
+const MessengerError = require('../errorHandler/messengerError');
+const constants = require('../constants/constant');
+const schema = require('../schema/schema');
+const debug = require('debug')('service:comment');
+const service = {
 
-	getAllComments: function(res){
-		dao.getAllComments(res);
-	},
-
-	getComments: function(req, res, next){
-		dao.getComments(req, res, next, function(data){
-			res.status(200);
-			res.json({'Comments': data});
+	getAllComments: function(req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive all comments, Request Id: ${req.id}`);
+			debug(`Processing request to retreive all comments, Request Id: ${req.id}`);
+			dao.getAllComments(resolve, reject, req);
 		});
 	},
 
-	getAllCommentsForMessage: function(messageId, res){
-		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + id);
-		}
-		dao.getAllCommentsForMessage(messageId, res);
+	getAllCommentsForMessage: function(req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive all comments for message with messageId: ${req.params.messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to retreive all comments for message with messageId: ${req.params.messageId}, Request Id: ${req.id}`);
+			dao.getAllCommentsForMessage(resolve, reject, req);
+		});
 	},
 
-	getComment: function(messageId, id, res){
-		if(!id){
-			throw new Error("Missing Comment Id");
-		}
-		if(isNaN(id)){
-			throw new Error("Invalid Comment Id");		
+	getComment: function(req){
+		let id = req.params.id;
+		let messageId = req.params.messageId;
+		if(!id || isNaN(id)){
+			debug(`Error occurred: Invalid comment id: ${id}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
 		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + id);
+			debug(`Error occurred: Invalid messageId: ${messageId}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		dao.getComment(messageId, id, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive comment by id: ${id} for message with id: ${messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to retreive comment by id: ${id} for message with id: ${messageId}, Request Id: ${req.id}`);
+			dao.getComment(resolve, reject, messageId, id, req);
+		});
 	},
 
-	createComment: function(messageId, comment, res){
-		if(!comment){
-			throw new Error("Invalid post input");
-		}
-		if(!comment.text || !comment.author){
-			throw new Error("Missing required parameter in Comment");
-		}
-		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + id);
-		}
-		return dao.createComment(messageId, comment, res);
+	createComment: function(req){
+		const comment = req.body;
+		comment.messageId = req.params.messageId;
+		schema.validateComment(comment, req);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to create comment for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to create comment for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			dao.createComment(resolve, reject, comment, req);
+		});
 	},
 
-	updateComment: function(messageId, comment, id, res){
-		if(!comment){
-			throw new Error("Invalid post input");
-		}
-		if(!comment.text || !comment.author){
-			throw new Error("Missing required parameter in Comment");
-		}
-		if(isNaN(id)){
-			throw new Error("Invalid id");
-		}
-		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + id);
-		}
-		return dao.updateComment(messageId, comment, id, res);
+	updateComment: function(req){
+		const comment = req.body;
+		comment.messageId = req.params.messageId;
+		comment.id = req.params.id;
+		schema.validateComment(comment, req);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to update comment with id: ${req.params.id} for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to update comment with id: ${req.params.id} for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			dao.updateComment(resolve, reject, comment, req);
+		});
 	},
 
-	deleteComment: function(messageId, id, res){
-		if(isNaN(id)){
-			throw new Error("Invalid id");
+	deleteComment: function(req){
+		if(isNaN(req.params.id)){
+			debug(`Error occurred: Invalid comment id: ${req.params.id}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + id);
+		if(isNaN(req.params.messageId)){
+			debug(`Error occurred: Invalid messageId: ${req.params.messageId}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		dao.deleteComment(messageId, id, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to delete comment with id: ${req.params.id} for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to delete comment with id: ${req.params.id} for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			dao.deleteComment(resolve, reject, req);
+		});
 	},
 
-	deleteAllCommentsForMessage: function(messageId, res){
-		if(isNaN(messageId)){
-			throw new Error('Invalid message Id : ' + messageId);
+	deleteAllCommentsForMessage: function(req){
+		if(isNaN(req.params.messageId)){
+			debug(`Error occurred: Invalid request messageId: ${req.params.messageId}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		dao.deleteAllCommentsForMessage(messageId, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to delete all comments for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			debug(`Processing request to delete all comments for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+			dao.deleteAllCommentsForMessage(resolve, reject, req);
+		});
 	}
 
 }

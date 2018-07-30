@@ -1,58 +1,62 @@
-var logger = require('../config/winston');
-var httpContext = require('express-http-context');
-var dao = require('../dao/message');
-var service = {
+const dao = require('../dao/message');
+const Promise = require('promise');
+const MessengerError = require('../errorHandler/messengerError');
+const constants = require('../constants/constant');
+const schema = require('../schema/schema');
+const debug = require('debug')('service:message');
+const service = {
 
-	getAllMessages: function(res){
-		dao.getAllMessages(res);
-	},
-
-	getMessages: function(req, res, next){
-		dao.getMessages(req, res, next, function(data){
-			res.status(200);
-			res.json({'messages': data});
+	getAllMessages: function(req){
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive all messages, Request Id: ${req.id}`);
+			debug(`Processing request to retreive all messages, Request Id: ${req.id}`);
+			dao.getAllMessages(resolve, reject, req);
 		});
 	},
 
-	getMessage: function(id, showComments, res){
-		if(!id){
-			throw new Error("Missing message Id");
+	getMessage: function(req){
+		let id = req.params.id;
+		if(!id || isNaN(id)){
+			debug(`Error occurred: Invalid message id: ${id}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		if(isNaN(id)){
-			throw new Error("Invalid message Id");		
-		}
-		dao.getMessage(id, showComments, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to retreive message by id: ${id}, Request Id: ${req.id}`);
+			debug(`Processing request to retreive message by id: ${id}, Request Id: ${req.id}`);
+			dao.getMessage(resolve, reject, id, req);
+		});
 	},
 
-	createMessage: function(message, res){
-		if(!message){
-			throw new Error("Invalid post input");
-		}
-		if(!message.text || !message.author){
-			throw new Error("Missing required parameter in message");
-		}
-		return dao.createMessage(message, res);
+	createMessage: function(req){
+		const message = req.body;
+		schema.validateMessage(message, req);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to create message, Request Id: ${req.id}`);
+			debug(`Processing request to create message, Request Id: ${req.id}`);
+			dao.createMessage(resolve, reject, message, req);
+		});
 	},
 
-	updateMessage: function(message, id, res){
-		if(!message){
-			throw new Error("Invalid post input");
-		}
-		if(!message.text || !message.author){
-			throw new Error("Missing required parameter in message");
-		}
-
-		if(isNaN(id)){
-			throw new Error("Invalid id");
-		}
-		return dao.updateMessage(message, id, res);
+	updateMessage: function(req){
+		const message = req.body;
+		schema.validateMessage(message, req);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to update message with id: ${req.params.id}, Request Id: ${req.id}`);
+			debug(`Processing request to update message with id: ${req.params.id}, Request Id: ${req.id}`);
+			dao.updateMessage(resolve, reject, message, req);
+		});
 	},
 
-	deleteMessage: function(id, res){
-		if(isNaN(id)){
-			throw new Error("Invalid id");
+	deleteMessage: function(req){
+		if(isNaN(req.params.id)){
+			debug(`Error occurred: Invalid message id: ${req.params.id}, Request Id: ${req.id}`);
+			throw new MessengerError(constants.error.ERR_9001);
 		}
-		dao.deleteMessage(id, res);
+		return new Promise(function(resolve, reject){
+			global.logger.debug(`Processing request to delete message with id: ${req.params.id}, Request Id: ${req.id}`);
+			debug(`Processing request to delete message with id: ${req.params.id}, Request Id: ${req.id}`);
+			dao.deleteMessage(resolve, reject, req);
+		});
 	}
 
 }

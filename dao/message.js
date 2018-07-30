@@ -1,97 +1,85 @@
-var mysql = require('../connection/mysql');
-var logger = require('../config/winston');
-var Message = require('../models/message');
+const mysql = require('../connection/mysql');
+const Message = require('../models/message');
+const debug = require('debug')('dao:message');
 
-var messageDao = {
+const messageDao = {
 
-	getMessages: function(req, res, next, callback){
+	getAllMessages: function(resolve, reject, req){
 		mysql.getConnection().query('Select * from message', function(err, data){
 			if(err){
-				throw err;
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug("Successfully retreive all messages, " + "Request Id: " + req.id);
+				resolve(data);
 			}
-			callback(data);
 		});
 	},
 
-	getAllMessages: function(res){
-		mysql.getConnection().query('Select * from message', function(err, data){
-			if(err){
-				throw err;
-			}
-			res.status(200);
-   			res.json({'messages' : data});
-		});
-	},
-
-	
-
-	getMessage: function(id, showComments, res){
+	getMessage: function(resolve, reject, id, req){
 		mysql.getConnection().query('Select * from message where `id`=?', id, function(err, data){
 			if(err){
-				throw err;
-			}
-			if(data.length == 0){
-				res.status(200);
-				res.json({'message': data});
-			}else if(showComments){
-				mysql.getConnection().query('Select * from comment where messageId =?', id, function(err, comments){
-					if(err){
-						throw err;
-					}
-					data[0].comments = comments;
-					res.status(200);
-					res.json({'message': data});
-				});
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
 			}else{
-				res.status(200);
-				res.json({'message': data});
+				global.logger.debug(`Successfully retreive message by id: ${id}, Request Id: ${req.id}`);
+				resolve(data);
 			}
 		});
 	},
 
-	createMessage: function(message, res){
-		var mess = new Message(message.text, message.author);
+	createMessage: function(resolve, reject, message, req){
+		const mess = new Message(message.text, message.author);
 		mysql.getConnection().query('Insert into message SET ?', mess, function(err, data){
 			if(err){
-				throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully created message by id: ${data.insertId}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(201);
-			res.send("Successfully created message for author " + message.author + ` with id ${data.insertId}`);
 		});
 	},
 
-	updateMessage: function(message, id, res){
-		var mess = new Message(message.text, message.author);
-		mysql.getConnection().query("Update message SET text = ?, author = ? where id=?", 
+	updateMessage: function(resolve, reject, message, req){
+		const mess = new Message(message.text, message.author);
+		const id = req.params.id;
+		mysql.getConnection().query('Update message SET text = ?, author = ? where id=?', 
 			[mess.text, mess.author, id],  function(err, data){
 			if(err){
-				throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else if(data.changedRows === 0){
+				debug(`No message found with id: ${id}, Request Id: ${req.id}`);
+				global.logger.debug(`No message found with id: ${id}, Request Id: ${req.id}`);
+			}else{
+				global.logger.debug(`Successfully updated message with id: ${id}, Request Id: ${req.id}`);
 			}
-			if(data.changedRows === 0){
-				res.status(404);
-				res.send('No message found with id: ' + id);
-			}
-			res.status(201);
-			res.send(`Successfully updated message with id ${id}`);
+			resolve(data);
 		});
 	},
 
-	deleteMessage: function(id, res){
-		var conn = mysql.getConnection();
-		conn.query('Delete from comment where `messageId`=?', id, function(err, data){
+	deleteMessage: function(resolve, reject, req){
+		mysql.getConnection().query('Delete from message where `id`=?', req.params.id, function(err, result){
 			if(err){
-					throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
 			}
-			conn.query('Delete from message where `id`=?', id, function(err, data){
+			mysql.getConnection().query('Delete from comment where `messageId`=?', req.params.id, function(err, data){
 				if(err){
-					throw err
+					debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+					global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+					reject(err);
+				}else{
+					global.logger.debug(`Successfully deleted ${data.affectedRows} comments for messageId: ${req.params.id}, Request Id: ${req.id}`);
+					debug(`Successfully deleted ${data.affectedRows} comments for messageId: ${req.params.id}, Request Id: ${req.id}`);
+					resolve(result);
 				}
-				if(data.affectedRows === 0){
-					res.status(404);
-					res.send('No message found with id: ' + id);
-				}
-				res.status(200);
-				res.send("Successfully deleted message with id: " + id);
 			});
 		});
 	}

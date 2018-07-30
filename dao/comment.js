@@ -1,99 +1,103 @@
-var mysql = require('../connection/mysql');
-var logger = require('../config/winston');
-var Comment = require('../models/comment');
+const mysql = require('../connection/mysql');
+const Comment = require('../models/comment');
+const debug = require('debug')('dao:comment');
 
-var commentDao = {
+const commentDao = {
 
-	getComments: function(req, res, next, callback){
+	getAllComments: function(resolve, reject, req){
 		mysql.getConnection().query('Select * from comment', function(err, data){
 			if(err){
-				throw err;
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug("Successfully retreive all comment, " + "Request Id: " + req.id);
+				resolve(data);
 			}
-			callback(data);
 		});
 	},
 
-	getAllComments: function(res){
-		mysql.getConnection().query('Select * from comment', function(err, data){
+	getAllCommentsForMessage: function(resolve, reject, req){
+		mysql.getConnection().query('Select * from comment where messageId =?', req.params.messageId, function(err, data){
 			if(err){
-				throw err;
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully retreive all comments for message with id: ${req.params.messageId}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(200);
-   			res.json({'comments' : data});
 		});
 	},
 
-	getAllCommentsForMessage: function(messageId, res){
-		mysql.getConnection().query('Select * from comment where messageId =?', messageId, function(err, data){
+	getComment: function(resolve, reject, messageId, id, req){
+		mysql.getConnection().query('Select * from comment where `id`=? and messageId =?', [req.params.id, req.params.messageId], function(err, data){
 			if(err){
-				throw err;
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully retreive comment with id: ${req.params.id} for message with id: ${id}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(200);
-			res.json({'comments': data});
 		});
 	},
 
-	getComment: function(messageId, id, res){
-		mysql.getConnection().query('Select * from comment where `id`=? and messageId =?', [id, messageId], function(err, data){
-			if(err){
-				throw err;
-			}
-			res.status(200);
-			res.json({'comment': data});
-		});
-	},
-
-	createComment: function(messageId, comment, res){
-		var comm = new Comment(messageId, comment.text, comment.author);
+	createComment: function(resolve, reject, comment, req){
+		const comm = new Comment(comment.messageId, comment.text, comment.author);
 		mysql.getConnection().query('Insert into comment SET ?', comm, function(err, data){
 			if(err){
-				throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else{
+				global.logger.debug(`Successfully created comment with id: ${data.insertId} for message with id: ${comment.messageId}, Request Id: ${req.id}`);
+				resolve(data);
 			}
-			res.status(201);
-			res.send(`Successfully created comment for messageId: ${messageId} with id: ${data.insertId}`);
 		});
 	},
 
-	updateComment: function(messageId, comment, id, res){
-		var comm = new Comment(messageId, comment.text, comment.author);
-		mysql.getConnection().query("Update comment SET text = ?, author = ? where id=? and messageId=?", 
-			[comm.text, comm.author, id, messageId],  function(err, data){
+	updateComment: function(resolve, reject, comment, req){
+		const comm = new Comment(comment.messageId, comment.text, comment.author);
+		const id = req.params.id;
+		mysql.getConnection().query('Update comment SET text = ?, author = ? where id=? and messageId=?', 
+			[comm.text, comm.author, id, comment.messageId],  function(err, data){
 			if(err){
-				throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
+			}else if(data.changedRows === 0){
+				debug(`No comment found with id: ${id} with message id: ${comment.messageId}, Request Id: ${req.id}`);
+				global.logger.debug(`No comment found with id: ${id} with message id: ${comment.messageId}, Request Id: ${req.id}`);
+			}else{
+				global.logger.debug(`Successfully updated comment with id: ${id} for message with id: ${comment.messageId}, Request Id: ${req.id}`);
 			}
-			if(data.changedRows === 0){
-				res.status(404);
-				res.send(`No comment found for messageId: ${messageId} with commentId: ${id}`);
-			}
-			res.status(201);
-			res.send(`Successfully updated comment for messageId: ${messageId} with commentId ${id}`);
+			resolve(data);
 		});
 	},
 
-	//to do delete comments too
-	deleteComment: function(messageId, id, res){
-		mysql.getConnection().query('Delete from comment where `id`=? and messageId=?', [id, messageId], function(err, data){
+	deleteComment: function(resolve, reject, req){
+		mysql.getConnection().query('Delete from comment where `id`=? and messageId=?', [req.params.id, req.params.messageId], function(err, data){
 			if(err){
-				throw err
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
 			}
-			if(data.affectedRows === 0){
-				res.status(404);
-				res.send(`No comment found for messageId: ${messageId} with commentId: ${id}`);
-			}
-			res.status(200);
-			res.send(`Successfully deleted comment for messageId: ${messageId} with commentId ${id}`);
+			resolve(data);
 		});
 	},
 
-	deleteAllCommentsForMessage: function(messageId, res){
-		mysql.getConnection().query('Delete from comment where messageId =?', messageId, function(err, data){
+	deleteAllCommentsForMessage: function(resolve, reject, req){
+		mysql.getConnection().query('Delete from comment where messageId=?', req.params.messageId, function(err, data){
 			if(err){
-				throw err;
+				debug(`Error occurred: Request Id: ${req.id}, ${err.stack}`);
+				global.logger.error(`Request Id: ${req.id}, ${err.stack}`);
+				reject(err);
 			}
-			res.status(200);
-			res.send(`Successfully deleted all comments for messageId: ${messageId}`);
+			resolve(data);
 		});
 	}
+
 }
 
 module.exports = commentDao;
