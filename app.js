@@ -1,3 +1,4 @@
+const newrelic = require('newrelic');
 const createError = require('http-errors');
 const errorHandler = require('./errorHandler/errorHandler');
 const express = require('express');

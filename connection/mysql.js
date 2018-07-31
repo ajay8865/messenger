@@ -35,8 +35,8 @@ const connection = {
 		});
 	},
 	
-	createPool: function(config){
-		pool = mysql.createPool(config);
+	createPool: function(){
+		pool = mysql.createPool(constants.poolConfig);
 		global.logger.debug('Created pool connection with connectionLimit: '  +config.connectionLimit);
 		return pool;
 	},
@@ -85,8 +85,3 @@ const connection = {
 }
 
 module.exports = connection;
-
-
-
-
-
