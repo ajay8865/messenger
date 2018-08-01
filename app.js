@@ -13,19 +13,17 @@ const profileRouter = require('./routes/profile');
 const messageRouter = require('./routes/message');
 const commentRouter = require('./routes/comment');
 const debug = require('debug')('app:http');
-const constants = require('./constants/constant');
 const app = express();
 
 if (!global.logger){
 	debug(`global.logger is initialised now`);
   	global.logger = logger;
 }
-
 //create connection and connect to db
 mysql.createConnection('localhost', 'user', 'password', 'messenger');
 
 //required for creating pool connection
-//const pool = mysql.createPool(constants.poolConfig);
+//const pool = mysql.createPool();
 //mysql.registerPoolEvents(pool);
 
 // view engine setup
